@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CT Interface - PNS Scan</title>
+
+<style>
+*{
+box-sizing:border-box;
+font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+margin:0;
+background:#6f79a0;
+}
+
+.main-layout{
+display:flex;
+height:100vh;
+}
+
+.left-side{
+width:100%;
+overflow:auto;
+padding:15px;
+transition:width 0.4s ease;
+background:#6f79a0;
+}
+
+.right-side{
+width:40%;
+background:black;
+display:none;
+flex-direction:column;
+}
+
+#quadContainer{
+flex:1;
+display:grid;
+grid-template-columns:1fr 1fr;
+grid-template-rows:1fr 1fr;
+gap:3px;
+background:black;
+padding:5px;
+position:relative;
+}
+
+.quad{
+background:black;
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+border:2px solid #111;
+position:relative;
+}
+
+.quad-content {
+width:100%;
+height:100%;
+position:relative;
+}
+
+.scout-img {
+width:100%;
+height:100%;
+object-fit:cover;
+position:absolute;
+top:0;
+left:0;
+transition:opacity 0.3s ease;
+opacity:0;
+z-index:1;
+}
+
+.gif-video {
+width:100%;
+height:100%;
+object-fit:contain;
+position:absolute;
+top:0;
+left:0;
+transition:opacity 0.6s ease;
+opacity:0;
+z-index:2;
+}
+
+video {
+width:100%;
+height:100%;
+object-fit:contain;
+background:black;
+}
+
+img {
+object-fit:cover;
+}
+
+.roi-layer {
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+cursor:crosshair;
+display:none;
+z-index:10;
+background: transparent;
+}
+
+.roi-box {
+position:absolute;
+border:3px solid #00ff00;
+background:rgba(0,255,0,0.15);
+display:none;
+pointer-events:none;
+z-index:11;
+}
+
+.roi-box.active {
+display:block;
+}
+
+#progressBar{
+height:8px;
+width:0%;
+background:#00ff66;
+transition:width 0.1s linear;
+}
+
+td:has(.start-loc),
+td:has(.end-loc) {
+    background-color: #ff0000 !important;
+}
+
+td:has(.start-loc) .location-button,
+td:has(.end-loc) .location-button {
+    background-color: transparent !important;
+    color: #000000;
+    font-weight: bold;
+}
+
+td:has(.start-loc):hover,
+td:has(.end-loc):hover {
+    background-color: #cc0000 !important;
+}
+
+td:has(.start-loc) .location-button.modified,
+td:has(.end-loc) .location-button.modified {
+    background-color: transparent !important;
+    color: #000000;
+}
+
+.wrapper{
+width:1180px;
+margin:0 auto;
+}
+
+.page-first {
+    display: block;
+}
+
+.page-second {
+    display: none;
+}
+
+.page-second.visible {
+    display: block;
+}
+
+.top-section{
+margin-top:8px;
+background:#d9deea;
+border:2px solid #9aa3c2;
+display:flex;
+padding:15px;
+height:300px;
+position:relative;
+}
+
+.image-box{
+width:420px;
+background:#eef1f7;
+border:2px solid #b5bdd8;
+padding:10px;
+position:relative;
+}
+
+.image-box img{
+width:100%;
+height:250px;
+object-fit:cover;
+cursor:pointer;
+display:block;
+}
+
+.banner-video {
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+object-fit:contain;
+display:none;
+z-index:20;
+}
+
+.banner-video.active {
+display:block;
+}
+
+.right-panel{
+flex:1;
+margin-left:20px;
+font-size:14px;
+}
+
+.right-panel h3{
+margin:0;
+font-size:15px;
+}
+
+.section{
+margin-top:10px;
+}
+
+.btn{
+padding:6px 14px;
+border:1px solid #7c86ad;
+background:#bfc6de;
+margin-right:6px;
+font-size:12px;
+cursor:pointer;
+}
+
+.yellow{ background:#f1e7a6; }
+.blue{ background:#aeb8d6; }
+
+.desc{
+margin-top:8px;
+}
+
+.desc input{
+width:200px;
+padding:4px;
+border:1px solid #777;
+}
+
+.blue-bar{
+background:#3f4a78;
+padding:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:5px;
+}
+
+.blue-bar button{
+padding:6px 12px;
+background:#d9deea;
+border:1px solid #7c86ad;
+cursor:pointer;
+}
+
+.table-section{
+background:#5b668f;
+padding:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+
+th{
+background:#6d79a7;
+color:white;
+padding:8px;
+border:1px solid #2e3656;
+}
+
+td{
+background:#e2e6f1;
+text-align:center;
+padding:0;
+border:1px solid #2e3656;
+}
+
+.highlight{
+background:#f4e7a2;
+}
+
+.param-input{
+width:100%;
+height:100%;
+border:none;
+background:transparent;
+text-align:center;
+padding:8px;
+font-size:13px;
+}
+
+.param-input:focus{
+outline:none;
+background:#fff8cc;
+font-weight:bold;
+}
+
+.modified{
+background:#ffe08a !important;
+}
+
+.location-button {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+    transition: background-color 0.2s;
+    color: #000;
+}
+
+.location-button:hover {
+    background-color: #d0d6e8 !important;
+}
+
+.location-button:active {
+    background-color: #b0b8d0 !important;
+}
+
+.location-button.modified {
+    background: #ffe08a !important;
+}
+
+.kv-button {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    padding: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: monospace;
+    transition: background-color 0.2s;
+    color: #000;
+}
+
+.kv-button:hover {
+    background-color: #d0d6e8 !important;
+}
+
+.kv-button:active {
+    background-color: #b0b8d0 !important;
+}
+
+.kv-button.modified {
+    background: #ffe08a !important;
+}
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #2a2f4a;
+    border: 3px solid #00aaff;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 0 20px rgba(0, 170, 255, 0.5);
+}
+
+.modal-header {
+    background: #1a1e30;
+    color: #00aaff;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 16px;
+    border-bottom: 2px solid #00aaff;
+    text-align: center;
+}
+
+.modal-body {
+    padding: 25px;
+    color: white;
+    background: #1a1e30;
+}
+
+.modal-body label {
+    display: block;
+    margin-bottom: 10px;
+    color: #00aaff;
+    font-size: 14px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 12px;
+    background: #0a0e1a;
+    border: 2px solid #00aaff;
+    color: #00aaff;
+    font-size: 18px;
+    font-family: monospace;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.modal-input:focus {
+    outline: none;
+    border-color: #ffaa00;
+    background: #1a1e30;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.modal-btn {
+    padding: 8px 30px;
+    border: 2px solid #00aaff;
+    background: transparent;
+    color: #00aaff;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 80px;
+}
+
+.modal-btn.save {
+    background: #00aaff;
+    color: #1a1e30;
+}
+
+.modal-btn.cancel {
+    background: transparent;
+    color: #00aaff;
+}
+
+.modal-btn:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+.modal-btn.cancel:hover {
+    background: rgba(0, 170, 255, 0.2);
+}
+
+.kv-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.kv-modal-content {
+    background: #1a2a3a;
+    border: 3px solid #4a9eff;
+    border-radius: 10px;
+    width: 450px;
+    box-shadow: 0 0 30px rgba(74, 158, 255, 0.7);
+}
+
+.kv-modal-header {
+    background: #0a1a2a;
+    color: #4a9eff;
+    padding: 20px;
+    font-weight: bold;
+    font-size: 18px;
+    border-bottom: 2px solid #4a9eff;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.kv-modal-body {
+    padding: 30px;
+    background: #1a2a3a;
+    text-align: center;
+}
+
+.kv-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.kv-option-btn {
+    padding: 15px 25px;
+    background: #0a1a2a;
+    border: 2px solid #4a9eff;
+    color: #4a9eff;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+    min-width: 80px;
+    transition: all 0.3s;
+}
+
+.kv-option-btn:hover {
+    background: #4a9eff;
+    color: #0a1a2a;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(74, 158, 255, 0.5);
+}
+
+.kv-option-btn.selected {
+    background: #4a9eff;
+    color: #0a1a2a;
+    border-color: #fff;
+}
+
+.kv-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.kv-modal-btn {
+    padding: 10px 40px;
+    border: 2px solid #4a9eff;
+    background: transparent;
+    color: #4a9eff;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.kv-modal-btn.save {
+    background: #ff4a4a;
+    color: #0a1a2a;
+}
+
+.kv-modal-btn.cancel {
+    background: transparent;
+    color: #4a9eff;
+}
+
+.kv-modal-btn:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+.continue-area{
+background:#6f79a0;
+padding:15px;
+display:flex;
+justify-content:center;
+gap:15px;
+}
+
+.continue-btn{
+display:flex;
+align-items:center;
+gap:15px;
+padding:12px 40px;
+font-weight:bold;
+background:linear-gradient(to right,#2f8f57 50%, #e4e63b);
+border:2px solid #333;
+cursor:pointer;
+font-size:15px;
+}
+
+.start-scan-btn {
+display:flex;
+align-items:center;
+justify-content:center;
+padding:12px 30px;
+font-weight:bold;
+border:2px solid #333;
+cursor:pointer;
+font-size:15px;
+background:#bfc6de;
+color:#333;
+transition:all 0.3s ease;
+}
+
+.start-scan-btn.active {
+background:#ff9800;
+color:white;
+border-color:#e68900;
+box-shadow:0 0 20px #ff9800;
+}
+
+.arrow{
+width:45px;
+height:20px;
+background:black;
+clip-path:polygon(0 0, 75% 0, 75% 30%, 100% 50%, 75% 70%, 75% 100%, 0 100%);
+}
+
+.radio{
+font-size:22px;
+}
+
+.bottom-controls{
+background:#6f79a0;
+padding:10px;
+display:flex;
+gap:8px;
+margin-top:15px;
+}
+
+.bottom-controls button{
+padding:8px 12px;
+background:#cfd5e6;
+border:1px solid #7c86ad;
+font-size:12px;
+cursor:pointer;
+}
+
+.exam-timer {
+    background: #000000;
+    border: 2px solid #00ff00;
+    border-radius: 6px;
+    padding: 4px 10px;
+    width: 120px;
+    margin: 5px auto;
+    text-align: center;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+#timerDisplay {
+    color: #00ff00;
+    font-size: 20px;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 5px #00ff00;
+    display: block;
+    line-height: 1.2;
+}
+
+.exam-timer.stopped {
+    border-color: #ff0000;
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+}
+
+.exam-timer.stopped #timerDisplay {
+    color: #ff0000;
+    text-shadow: 0 0 5px #ff0000;
+}
+
+.roi-status {
+color: #00ff00;
+font-size: 12px;
+margin-top: 5px;
+text-align: center;
+background: rgba(0,0,0,0.7);
+padding: 2px;
+}
+
+.table-section.hidden {
+display: none !important;
+}
+
+/* ===== Reformater Page Styles ===== */
+#reformatOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 2000;
+    display: none;
+    flex-direction: row;
+}
+
+.reformat-panel-area {
+    width: 35%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    order: 1;
+    background: linear-gradient(to bottom, #bfc7de, #aab3cf);
+}
+
+.reformat-quads-area {
+    width: 65%;
+    height: 100%;
+    padding: 10px;
+    background: #000;
+    order: 2;
+}
+
+.reformat-quad-container {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+    background: black;
+}
+
+.reformat-quad {
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 2px solid #333;
+    position: relative;
+    cursor: pointer;
+    transition: border 0.2s ease;
+}
+
+/* تغيير لون التحديد من أخضر إلى أحمر */
+.reformat-quad.selected-quad {
+    border: 3px solid #ff0000;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+}
+
+.reformat-quad video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: black;
+}
+
+.reformat-quad img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Panel styles */
+.reformat-panel-area .panel {
+    width: 100%;
+    max-width: 100%;
+    background: linear-gradient(to bottom, #bfc7de, #aab3cf);
+    border: 2px solid #6d7694;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Tools Grid - 3 rows with different column counts */
+.reformat-panel-area .tools-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255,255,255,0.25);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.reformat-panel-area .tools-row {
+    display: grid;
+    gap: 12px;
+    justify-items: center;
+}
+
+.reformat-panel-area .row-1 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.reformat-panel-area .row-2 {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.reformat-panel-area .row-3 {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+}
+
+.reformat-panel-area .tool-btn {
+    background: linear-gradient(to bottom, #edf1fb, #9fa9c8);
+    border: 1px solid #6d7694;
+    border-radius: 6px;
+    padding: 8px 4px;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: inset 0 1px 2px white;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.reformat-panel-area .tool-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(to bottom, #f0f4fc, #b0b9d4);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.reformat-panel-area .tool-btn:active {
+    transform: translateY(0);
+}
+
+.reformat-panel-area .row-1 .tool-icon-img {
+    width: 48px;
+    height: 48px;
+    display: block;
+    margin: 0 auto 8px auto;
+    object-fit: contain;
+}
+
+.reformat-panel-area .row-1 .tool-label {
+    font-size: 10px;
+    color: #1f2b48;
+    font-weight: bold;
+    display: block;
+}
+
+.reformat-panel-area .tool-btn.image-only {
+    padding: 4px;
+}
+
+.reformat-panel-area .tool-btn.image-only .tool-icon-img {
+    width: 100%;
+    height: auto;
+    min-height: 50px;
+    max-height: 60px;
+    display: block;
+    margin: 0;
+    object-fit: cover;
+    transform: scale(1.05);
+}
+
+.reformat-panel-area .tool-label { 
+    font-size: 10px; 
+    color: #1f2b48; 
+    font-weight: bold; 
+    display: block;
+}
+
+.reformat-panel-area .section-header {
+    font-size: 12px;
+    font-weight: bold;
+    color: #1f2b48;
+    margin-bottom: 8px;
+    padding-left: 4px;
+}
+
+.reformat-panel-area .input-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+
+.reformat-panel-area .input-row label { font-size: 11px; flex: 1; color: #1f2b48; font-weight: 600; }
+
+.reformat-panel-area select, .reformat-panel-area input {
+    background: #dfe4f3;
+    border: 1px solid #6d7694;
+    border-radius: 3px;
+    padding: 3px 5px;
+    font-size: 11px;
+    color: #1f2b48;
+}
+
+.reformat-panel-area .tab-row { display: flex; margin-top: 10px; }
+
+.reformat-panel-area .tab {
+    padding: 4px 14px;
+    font-size: 11px;
+    border: 1px solid #6d7694;
+    border-bottom: none;
+    background: #c5cde2;
+    cursor: pointer;
+    margin-right: 2px;
+    border-radius: 5px 5px 0 0;
+    color: #444;
+}
+
+.reformat-panel-area .tab.active {
+    background: #ffffff;
+    font-weight: bold;
+    color: #1f2b48;
+    position: relative;
+    z-index: 2;
+    margin-bottom: -1px;
+}
+
+.reformat-panel-area .tab-content {
+    background: white;
+    border: 1px solid #6d7694;
+    border-radius: 0 4px 4px 4px;
+    padding: 12px;
+}
+
+.reformat-panel-area .field-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.reformat-panel-area .field-group label { font-size: 11px; color: #333; }
+
+.reformat-panel-area .unit-input {
+    display: flex;
+    align-items: center;
+    background: #f0f3ff;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    width: 85px;
+}
+
+.reformat-panel-area .unit-input input { border: none; width: 55px; background: transparent; text-align: right; padding-right: 4px; }
+.reformat-panel-area .unit-input span { font-size: 10px; color: #666; padding-left: 4px; flex: 1; }
+
+.reformat-panel-area .footer {
+    margin-top: 12px;
+    border-top: 1px solid rgba(0,0,0,0.15);
+    padding-top: 12px;
+}
+
+.reformat-panel-area .btn-container {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.reformat-panel-area .btn-ui {
+    flex: 1;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #6d7694;
+    background: linear-gradient(to bottom, #fcfdfe, #b8c3e1);
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    color: #1f2b48;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.reformat-panel-area .btn-ui:active { background: #aab3cf; }
+
+.reformat-panel-area .adv-link {
+    font-size: 11px;
+    margin-top: 10px;
+    color: #1f2b48;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.green-lines-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: all;
+    cursor: crosshair;
+    z-index: 20;
+}
+
+/* فيديو المعاينة المؤقت */
+.preview-video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 30;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-video-overlay video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.preview-video-overlay .close-preview {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: 1px solid white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    z-index: 31;
+}
+/* ===== COPYRIGHT FOOTER ===== */
+
+.footer{
+background:#1b2540;
+padding:18px;
+text-align:center;
+border-top:3px solid #00aaff;
+color:white;
+font-size:14px;
+}
+
+.footer .name{
+color:#00d9ff;
+font-weight:bold;
+font-size:16px;
+}
+
+.footer a{
+color:#00aaff;
+text-decoration:none;
+font-weight:bold;
+}
+
+.footer a:hover{
+text-decoration:underline;
+}
+/* ===== SMALL UNIVERSITY BANNER ===== */
+
+.university-logo{
+position:absolute;
+top:10px;
+right:15px;
+z-index:999;
+}
+
+.university-logo img{
+width:50px;
+height:50px;
+object-fit:contain;
+background:white;
+padding:5px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.4);
+}
+</style>
+</head>
+<body>        <!-- UNIVERSITY LOGO -->
+<div class="university-logo">
+    <img src="c:\Users\dell\OneDrive\Desktop\project ct\university banner.jpg" alt="University Logo">
+</div>
+
+<div class="modal-overlay" id="locationModal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalTitle">Enter the desired Start Location.</div>
+        <div class="modal-body">
+            <input type="text" id="modalInput" class="modal-input" placeholder="I0.00" value="I0.00">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveModalValue()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="kv-modal-overlay" id="kvModal">
+    <div class="kv-modal-content">
+        <div class="kv-modal-header">Select the desired kV.</div>
+        <div class="kv-modal-body">
+            <div class="kv-options">
+                <button class="kv-option-btn" data-kv="80">80</button>
+                <button class="kv-option-btn" data-kv="100">100</button>
+                <button class="kv-option-btn" data-kv="120">120</button>
+                <button class="kv-option-btn" data-kv="140">140</button>
+            </div>
+            <div class="kv-modal-buttons">
+                <button class="kv-modal-btn cancel" onclick="closeKvModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="reformatOverlay">
+    <div class="reformat-panel-area">
+        <div class="panel">
+            <div class="tools-grid">
+                <div class="tools-row row-1">
+                    <button class="tool-btn" onclick="alert('my tools clicked!')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\7f63b0c8-f617-4e14-948b-8bf86306b14f (1).jpg" alt="Display">
+                        <span class="tool-label">MY Tools</span>
+                    </button>
+                    <button class="tool-btn" onclick="alert('Display clicked!')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\fe39490e-a503-4d10-9f80-20fb2a13ac6d.jpg" alt="Display">
+                        <span class="tool-label">Display</span>
+                    </button>
+                    <button class="tool-btn" onclick="alert('Segment clicked!')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\eb8ba6c4-8d9a-4f1c-a4de-ceb6cf01eb7f.jpg" alt="Film">
+                        <span class="tool-label">Segment</span>
+                    </button>
+                    <button class="tool-btn" onclick="alert('Film/ Save clicked!')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\15e0f60d-0a46-4845-aaca-76f8f76e1a0a.jpg" alt="Save">
+                        <span class="tool-label"> Film/ Save</span>
+                    </button>
+                    <button class="tool-btn" onclick="alert('Report clicked!')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\ecc19ef9-946a-47cb-b060-aa8775e98473.jpg" alt="3D">
+                        <span class="tool-label">Report</span>
+                    </button>
+                </div>
+                
+                <div class="tools-row row-2">
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\41af3d9b-6088-4da2-867b-2cbc4c25a539.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\049d8aa7-f84c-4895-906e-7c5d57970002.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\d2daf23a-c10c-4ca2-957c-141908918571.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\32b169f2-3d28-4ce6-80b3-be74e94a79c1.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\fb44dcee-c432-4528-9c67-f7e08fb1dd1f.jpg" alt="">
+                    </button>
+                </div>
+                
+                <div class="tools-row row-3">
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\25cea569-c15d-4275-a181-ccbd18f8be43.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\6fcd0998-914a-402a-802e-767f91cf8e26.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\16a42e78-5088-407d-a9bc-f04d9e6d726a.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" id="greenLinesToolBtn" onclick="activateGreenLinesTool()">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\7f87a7f6-929e-44a8-86a7-30f70bd90fc8.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\2871a546-a72b-4637-a0ef-30ab1ead6c68.jpg" alt="">
+                    </button>
+                    <button class="tool-btn image-only" onclick="alert('')">
+                        <img class="tool-icon-img" src="c:\Users\dell\OneDrive\Desktop\project ct\0eec38f1-cd5a-411b-86f7-4d2ecfcf3b3c.jpg" alt="">
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-header">Batch</div>
+
+            <div class="input-row">
+                <label>Protocols :</label>
+                <select style="width: 180px;"><option>Sagittal 5</option><option>Coronal 3</option><option>Axial 2</option></select>
+            </div>
+
+            <div class="tabs-area">
+                <div class="tab-row">
+                    <div class="tab" id="tabLoop">Loop</div>
+                    <div class="tab active" id="tabOblique">Oblique</div>
+                    <div class="tab" id="tabRotate">Rotate</div>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="field-group">
+                        <label>Number of Images</label>
+                        <input type="number" id="numImagesInput" value="36" style="width: 85px;">
+                    </div>
+                    <div class="field-group">
+                        <label>Spacing Between Images</label>
+                        <div class="unit-input"><input type="text" id="spacingInput" value="5.0"><span>mm</span></div>
+                    </div>
+                    <div class="field-group">
+                        <label>Slice Thickness</label>
+                        <div class="unit-input"><input type="text" id="thicknessInput" value="5.0"><span>mm</span></div>
+                    </div>
+                    <div class="field-group">
+                        <label>Mode</label>
+                        <select style="width: 85px;"><option>Average</option></select>
+                    </div>
+                    <div class="field-group">
+                        <label>FOV</label>
+                        <div class="unit-input"><input type="text" id="fovInput" value="25.0"><span>cm</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="input-row">
+                    <label>Output</label>
+                    <select style="width: 180px;"><option>Save</option></select>
+                </div>
+                <div class="input-row">
+                    <label>Description</label>
+                    <select style="width: 180px;"><option>Processed Images</option></select>
+                </div>
+                <div class="input-row">
+                    <label>Apply to</label>
+                    <select style="width: 180px;"><option>Current Volume</option></select>
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn-ui" id="previewBtn">Preview</button>
+                    <button class="btn-ui">OK</button>
+                </div>
+
+                <div class="adv-link">
+                    <span>▶</span> Advanced
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="reformat-quads-area">
+        <div class="reformat-quad-container">
+            <div class="reformat-quad" id="reformatQuad1" data-quad="1">
+                <img id="reformatImg1" src="c:\Users\dell\OneDrive\Desktop\pns cronal l anatomy.jpg.jpeg" style="opacity:1;">
+            </div>
+            <div class="reformat-quad" id="reformatQuad2" data-quad="2">
+                <img id="reformatImg2" src="c:\Users\dell\OneDrive\Desktop\pns axail anatomy.jpg.jpeg" style="opacity:1;">
+            </div>
+            <div class="reformat-quad" id="reformatQuad3" data-quad="3">
+                <img id="reformatImg3" src="c:\Users\dell\OneDrive\Desktop\pns sagittall l anatomy.jpg.jpeg" style="opacity:1;">
+            </div>
+            <div class="reformat-quad" id="reformatQuad4" data-quad="4">
+                <img id="reformatImg4" src="c:\Users\dell\OneDrive\Desktop\pns cronal l anatomy.jpg.jpeg" style="opacity:1;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-layout">
+
+<div class="left-side" id="leftSide">
+<div class="wrapper">
+
+<div class="page-first" id="pageFirst">
+    <div class="top-section">
+        <div class="image-box">
+            <img id="mainImageFirst" class="patient-image" src="c:\Users\dell\OneDrive\Desktop\IIIIIIIIIII.jpg">
+            <video class="banner-video" id="bannerVideo1First" muted playsinline>
+            <source src="c:\Users\dell\OneDrive\Desktop\ggiiiiiiiifffffffffff.mp4" type="video/mp4">
+            </video>
+            <video class="banner-video" id="bannerVideo2First" muted playsinline>
+            <source src="c:\Users\dell\OneDrive\Desktop\ggiiiiiiiifffffffffff.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="right-panel">
+            <h3>Protocol:2.7 SINUS</h3>
+            Anatomical Reference
+            <div class="section"><button class="btn blue">OM</button></div>
+            <div class="section">Patient Orientation<br>Head First</div>
+            <div class="section">Patient Position<br>Supine</div>
+            <div class="section">
+                <button class="btn blue">Copy <br>PL Orient <br>PL Position</button>
+                <button class="btn blue">Auto <br>Store</button>
+                <button class="btn yellow"> auto <br>Transfer <br>ASUHDS4 <br>...</button>
+                <button class="btn blue">DR <br> auto <br>Transfer AWP <br>...</button>
+                <button class="btn blue">Show <br>Localizer</button>
+            </div>
+            <div class="desc">Series Description <input type="text" id="seriesDescFirst" value="Scout"></div>
+        </div>
+    </div>
+
+    <div class="blue-bar">
+        <div>
+            <button>Add <br>Scout</button>
+            <button>Delete <br>Selected <br>Scout</button>
+        </div>
+    </div>
+
+    <div class="table-section" id="tableSection">
+        <table>
+            <tr>
+                <th>Scout Num</th><th>Scan Type.</th><th>Start Loc.</th><th>End Loc.</th><th>kV</th>
+                <th>mA</th><th>Scout Plane</th><th>Voice Lights Timer</th><th>Scout WW/WL</th>
+            </tr>
+            <tr>
+                <td class="highlight">1</td>
+                <td>Scout</td>
+                <td><button class="location-button start-loc" data-row="1" data-type="start" data-value="S150.00">S150.00</button></td>
+                <td><button class="location-button end-loc" data-row="1" data-type="end" data-value="I50.00">I50.00</button></td>
+                <td><button class="kv-button" data-row="1" data-value="120">120</button></td>
+                <td><input type="number" class="param-input" value="10"></td>
+                <td><input type="number" class="param-input" value="90"></td>
+                <td class="highlight">N</td>
+                <td><input type="text" class="param-input" value="500/50"></td>
+             </tr>
+         </table>
+    </div>
+</div>
+
+<div class="page-second" id="pageSecond">
+    <div class="top-section">
+        <div class="image-box">
+            <img id="mainImageSecond" class="patient-image" src="c:\Users\dell\OneDrive\Desktop\IIIIIIIIIII.jpg">
+            <video class="banner-video" id="bannerVideo1Second" muted playsinline>
+            <source src="c:\Users\dell\OneDrive\Desktop\ggiiiiiiiifffffffffff.mp4" type="video/mp4">
+            </video>
+            <video class="banner-video" id="bannerVideo2Second" muted playsinline>
+            <source src="c:\Users\dell\OneDrive\Desktop\ggiiiiiiiifffffffffff.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="right-panel">
+            <h3>Protocol:2.7 SINUS</h3>
+            Anatomical Reference
+            <div class="section"><button class="btn blue">OM</button></div>
+            <div class="section">Patient Orientation<br>Head First</div>
+            <div class="section">Patient Position<br>Supine</div>
+            <div class="section">
+                <button class="btn blue">Copy <br>PL Orient <br>PL Position</button>
+                <button class="btn blue">Auto <br>Store</button>
+                <button class="btn yellow"> auto <br>Transfer <br>ASUHDS4 <br>...</button>
+                <button class="btn blue">DR <br> auto <br>Transfer <br> AWP <br>...</button>
+                <button class="btn blue">Show <br>Localizer</button>
+            </div>
+            <div class="desc">Series Description <input type="text" id="seriesDescSecond" value="5 MM"></div>
+        </div>
+    </div>
+
+    <div class="blue-bar">
+        <div>
+            <button>Add Group</button>
+            <button>Split Group</button>
+            <button>Biopsy Rx</button>
+            <button>More Info</button>
+            <button>Smart Prep</button>
+            <button>Preview</button>
+            <button id="reformatBtn">reformat</button>
+        </div>
+    </div>
+
+    <div class="table-section" id="secondTableSection">
+        <table>
+            <tr>
+                <th>Images</th><th>Scan Type</th><th>Start Location</th><th>End Location</th>
+                <th>No. of Images</th><th>Thick Speed</th><th>Interval</th><th>Gantry Tilt</th>
+                <th>SFOV</th><th>kV</th><th>mA</th><th>Total Exposure</th><th>Prep Group</th>
+             </tr>
+             <tr>
+                <td>1-23</td>
+                <td>Helical Full 0.7s</td>
+                <td><button class="location-button start-loc" data-row="2" data-type="start" data-value="I4.750">I4.750</button></td>
+                <td><button class="location-button end-loc" data-row="2" data-type="end" data-value="S105.250">S105.250</button></td>
+                <td>23</td>
+                <td><input type="number" class="param-input" value="5.0"></td>
+                <td><input type="number" class="param-input" value="5.000"></td>
+                <td><input type="text" class="param-input" value="S0.0"></td>
+                <td><input type="text" class="param-input" value="Head"></td>
+                <td><button class="kv-button" data-row="2" data-value="120">120</button></td>
+                <td><input type="number" class="param-input" value="250"></td>
+                <td><input type="text" class="param-input" value="9.77"></td>
+                <td><input type="text" class="param-input" value="0.0"></td>
+             </tr>
+         </table>
+    </div>
+</div>
+
+<div class="continue-area">
+    <div class="continue-btn" id="continueBtn">
+        <span class="arrow"></span>
+        <span class="radio">☢</span>
+        Confirm
+    </div>
+    <div class="start-scan-btn" id="startScanBtn">Start Scan</div>
+</div>
+
+<div class="exam-timer" id="examTimer">
+    <span id="timerDisplay">00:00</span>
+</div>
+
+<div class="bottom-controls" id="bottomControls">
+    <button id="finExamenBtn">End Examn</button>
+    <button id="serieSuivBtn">Next Series</button>
+    <button>Select New Protocol </button>
+    <button>Create New Series</button>
+    <button>Repeal Serie</button>
+    <button>One More</button>
+    <button style="background:#f1e7a6;">Transf. Auto Série SysFIR</button>
+</div>
+
+</div>
+</div>
+
+<div class="right-side" id="rightSide">
+    <div style="background:#111;"><div id="progressBar"></div></div>
+    <div id="quadContainer">
+        <div class="quad">
+            <div class="quad-content">
+                <img class="scout-img" id="scoutImage1" src="c:\Users\dell\OneDrive\Desktop\project ct\pns scout  2-img-00000-00000_00001.jpg.jpeg">
+                <video class="gif-video" id="gifVideo1" muted playsinline>
+                    <source src="" type="video/mp4">
+                </video>
+                <div class="roi-layer" id="roiLayer1"></div>
+                <div class="roi-box" id="roiBox1"></div>
+            </div>
+        </div>
+        <div class="quad">
+            <div class="quad-content">
+                <img class="scout-img" id="scoutImage2" src="c:\Users\dell\OneDrive\Desktop\project ct\pns scout  2-img-00000-00000_00001.jpg.jpeg">
+                <video class="gif-video" id="gifVideo2" muted playsinline>
+                    <source src="c:\Users\dell\OneDrive\Desktop\project ct\pns axial1.mp4" type="video/mp4">
+                </video>
+                <div class="roi-layer" id="roiLayer2"></div>
+                <div class="roi-box" id="roiBox2"></div>
+            </div>
+        </div>
+        <div class="quad">
+            <div class="quad-content">
+                <img class="scout-img" id="scoutImage3" src="c:\Users\dell\OneDrive\Desktop\project ct\pns scout  2-img-00000-00000_00001.jpg.jpeg">
+                <video class="gif-video" id="gifVideo3" muted playsinline>
+                    <source src="" type="video/mp4">
+                </video>
+            </div>
+        </div>
+        <div class="quad">
+            <div class="quad-content">
+                <img class="scout-img" id="scoutImage4" src="" style="display:none;">
+                <video class="gif-video" id="gifVideo4" muted playsinline>
+                    <source src="c:\Users\dell\OneDrive\Desktop\project ct\pns axial2.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+    </div>
+    <div class="roi-status" id="roiStatus">Ready to start. Press Continue.</div>
+</div>
+
+</div>
+
+<script>
+// ===== المتغيرات الأساسية =====
+let currentImageFirst = 1;
+let currentImageSecond = 1;
+let currentButton = null;
+let currentType = 'start';
+let currentRow = 1;
+let currentKvButton = null;
+
+const pageFirst = document.getElementById('pageFirst');
+const pageSecond = document.getElementById('pageSecond');
+const mainImageFirst = document.getElementById('mainImageFirst');
+const mainImageSecond = document.getElementById('mainImageSecond');
+const bannerVideo1First = document.getElementById('bannerVideo1First');
+const bannerVideo2First = document.getElementById('bannerVideo2First');
+const bannerVideo1Second = document.getElementById('bannerVideo1Second');
+const bannerVideo2Second = document.getElementById('bannerVideo2Second');
+const rightSide = document.getElementById("rightSide");
+const leftSide = document.getElementById("leftSide");
+const progressBar = document.getElementById("progressBar");
+const continueBtn = document.getElementById("continueBtn");
+const startScanBtn = document.getElementById("startScanBtn");
+const roiStatus = document.getElementById("roiStatus");
+const serieSuivBtn = document.getElementById("serieSuivBtn");
+const tableSection = document.getElementById("tableSection");
+const secondTableSection = document.getElementById("secondTableSection");
+const finExamenBtn = document.getElementById("finExamenBtn");
+const reformatBtn = document.getElementById("reformatBtn");
+const reformatOverlay = document.getElementById("reformatOverlay");
+
+const scoutImage1 = document.getElementById("scoutImage1");
+const scoutImage2 = document.getElementById("scoutImage2");
+const scoutImage3 = document.getElementById("scoutImage3");
+const scoutImage4 = document.getElementById("scoutImage4");
+const gifVideo1 = document.getElementById("gifVideo1");
+const gifVideo2 = document.getElementById("gifVideo2");
+const gifVideo3 = document.getElementById("gifVideo3");
+const gifVideo4 = document.getElementById("gifVideo4");
+const roiLayer1 = document.getElementById("roiLayer1");
+const roiLayer2 = document.getElementById("roiLayer2");
+const roiBox1 = document.getElementById("roiBox1");
+const roiBox2 = document.getElementById("roiBox2");
+
+const scoutImages = [scoutImage1, scoutImage2, scoutImage3, scoutImage4];
+const gifVideos = [gifVideo1, gifVideo2, gifVideo3, gifVideo4];
+const roiLayers = [roiLayer1, roiLayer2];
+const roiBoxes = [roiBox1, roiBox2];
+
+let progress = 0;
+let scanInterval = null;
+let scanPhase = 'initial';
+let drawingEnabled = false;
+let firstContinueClick = false;
+let scoutImagesDisplayed = false;
+let currentPage = 'first';
+let timerInterval = null;
+let seconds = 0;
+let timerRunning = false;
+const timerElement = document.getElementById('examTimer');
+const timerDisplay = document.getElementById('timerDisplay');
+const scanSound = new Audio("https://www.soundjay.com/mechanical/sounds/machine-hum-1.mp3");
+scanSound.loop = true;
+
+function updateTimer(){ seconds++; let mins = Math.floor(seconds/60); let secs = seconds%60; timerDisplay.textContent = String(mins).padStart(2,'0')+":"+String(secs).padStart(2,'0'); }
+function startTimer(){ if(!timerRunning){ timerInterval = setInterval(updateTimer,1000); timerRunning = true; timerElement.classList.remove('stopped'); } }
+function stopTimer(){ clearInterval(timerInterval); timerRunning = false; timerElement.classList.add('stopped'); }
+function resetTimer(){ clearInterval(timerInterval); seconds = 0; timerRunning = false; timerDisplay.textContent = "00:00"; timerElement.classList.remove('stopped'); }
+function startScanSound(){ scanSound.currentTime = 0; scanSound.play().catch(e => console.log("Audio play failed:", e)); }
+function stopScanSound(){ scanSound.pause(); scanSound.currentTime = 0; }
+
+// ===== مسارات الفيديوهات حسب الربع واتجاه الخطوط =====
+// ⚠️ قم بتغيير هذه المسارات حسب الفيديوهات المتوفرة لديك ⚠️
+const videoPaths = {
+    quad1: {
+        vertical: "c:/Users/dell/OneDrive/Desktop/project ct/sagittal.mp4",   // فيديو للربع الأول - خطوط طولية
+        horizontal: "c:/Users/dell/OneDrive/Desktop/project ct/axial.mp4" // فيديو للربع الأول - خطوط عرضية
+    },
+    quad2: {
+        vertical: "c:/Users/dell/OneDrive/Desktop/project ct/sagittal.mp4",   // فيديو للربع الثاني - خطوط طولية
+        horizontal: "c:/Users/dell/OneDrive/Desktop/project ct/coronal.mp4" // فيديو للربع الثاني - خطوط عرضية
+    },
+    quad3: {
+        vertical: "c:/Users/dell/OneDrive/Desktop/project ct/coronal.mp4",   // فيديو للربع الثالث - خطوط طولية
+        horizontal: "c:/Users/dell/OneDrive/Desktop/project ct/axial.mp4" // فيديو للربع الثالث - خطوط عرضية
+    },
+    quad4: {
+        vertical: "c:/Users/dell/OneDrive/Desktop/project ct/sagittal.mp4",   // فيديو للربع الرابع - خطوط طولية
+        horizontal: "c:/Users/dell/OneDrive/Desktop/project ct/axial.mp4" // فيديو للربع الرابع - خطوط عرضية
+    }
+};
+
+// متغير لتخزين الربع الحالي الذي توجد فيه الخطوط
+let currentActiveQuad = null;
+
+// ===== دالة تشغيل المعاينة =====
+function playPreviewVideo() {
+    if (!currentActiveQuad || !greenLinesActive) {
+        roiStatus.textContent = "⚠️ Please activate lines tool and move lines to a quad first!";
+        return;
+    }
+    
+    const quadNumber = currentActiveQuad.dataset.quad;
+    const orientation = currentLinesOrientation; // 'vertical' or 'horizontal'
+    
+    let videoPath;
+    if (orientation === 'vertical') {
+        videoPath = videoPaths[`quad${quadNumber}`]?.vertical;
+    } else {
+        videoPath = videoPaths[`quad${quadNumber}`]?.horizontal;
+    }
+    
+    if (!videoPath) {
+        roiStatus.textContent = `⚠️ No video defined for Quad ${quadNumber} with ${orientation} orientation.`;
+        return;
+    }
+    
+    // إزالة أي overlay سابق
+    const existingOverlay = currentActiveQuad.querySelector('.preview-video-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+    
+    // إنشاء overlay لعرض الفيديو
+    const overlay = document.createElement('div');
+    overlay.className = 'preview-video-overlay';
+    
+    const video = document.createElement('video');
+    video.src = videoPath;
+    video.autoplay = true;
+    video.muted = false;
+    video.controls = true;
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'contain';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.className = 'close-preview';
+    closeBtn.onclick = function() {
+        video.pause();
+        video.src = '';
+        overlay.remove();
+        roiStatus.textContent = `Preview closed. Lines are in Quad ${quadNumber} (${orientation === 'vertical' ? 'Vertical' : 'Horizontal'}).`;
+    };
+    
+    overlay.appendChild(video);
+    overlay.appendChild(closeBtn);
+    currentActiveQuad.appendChild(overlay);
+    
+    video.play().catch(e => console.log("Video play failed:", e));
+    roiStatus.textContent = `▶️ Playing preview: Quad ${quadNumber} - ${orientation === 'vertical' ? 'Vertical' : 'Horizontal'} lines`;
+}
+
+// ===== Green Lines Tool Functionality مع ربط العناصر ونقلها للأرباع =====
+let greenLinesActive = false;
+let currentLinesCanvas = null;
+let currentLinesOrientation = 'vertical';
+let currentLinesCount = 5;
+let isDrawingLines = false;
+let startPoint = { x: 0, y: 0 };
+let selectedQuad = null; // الربع المحدد حاليًا
+
+// الحصول على الأرباع
+const reformatQuad1 = document.getElementById('reformatQuad1');
+const reformatQuad2 = document.getElementById('reformatQuad2');
+const reformatQuad3 = document.getElementById('reformatQuad3');
+const reformatQuad4 = document.getElementById('reformatQuad4');
+const allQuads = [reformatQuad1, reformatQuad2, reformatQuad3, reformatQuad4];
+
+// إضافة مستمعات النقر للأرباع لتحديدها
+allQuads.forEach(quad => {
+    if (quad) {
+        quad.addEventListener('click', function(e) {
+            if (e.target === quad || quad.contains(e.target)) {
+                e.stopPropagation();
+            }
+            allQuads.forEach(q => q.classList.remove('selected-quad'));
+            this.classList.add('selected-quad');
+            selectedQuad = this;
+            console.log(`Quad ${this.dataset.quad} selected`);
+        });
+    }
+});
+
+// ربط تبويب Oblique بنقل الخطوط إلى الربع المحدد
+const tabOblique = document.getElementById('tabOblique');
+if (tabOblique) {
+    tabOblique.addEventListener('click', function() {
+        if (selectedQuad) {
+            console.log(`Moving lines to quad ${selectedQuad.dataset.quad}`);
+            moveLinesToQuad(selectedQuad);
+        } else {
+            console.log("No quad selected. Please click on a quad first.");
+            roiStatus.textContent = "Please click on a quad first, then click Oblique to move lines.";
+        }
+    });
+}
+
+// ربط زر Preview
+const previewBtn = document.getElementById('previewBtn');
+if (previewBtn) {
+    previewBtn.addEventListener('click', playPreviewVideo);
+}
+
+// دالة لنقل الخطوط إلى ربع محدد
+function moveLinesToQuad(targetQuad) {
+    if (!targetQuad) return;
+    
+    // حفظ البيانات الحالية للخطوط
+    const currentOrientation = currentLinesOrientation;
+    const currentCount = currentLinesCount;
+    const currentThickness = document.getElementById('thicknessInput') ? parseFloat(document.getElementById('thicknessInput').value) : 5.0;
+    
+    // إزالة الـ Canvas الحالي إذا وجد
+    if (currentLinesCanvas && currentLinesCanvas.parentNode) {
+        currentLinesCanvas.parentNode.removeChild(currentLinesCanvas);
+        currentLinesCanvas = null;
+    }
+    
+    // إزالة أي overlay فيديو سابق
+    const existingOverlay = targetQuad.querySelector('.preview-video-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+    
+    // إنشاء Canvas جديد في الـ Quad الجديد
+    const canvas = document.createElement('canvas');
+    canvas.className = 'green-lines-canvas';
+    
+    canvas.width = targetQuad.clientWidth;
+    canvas.height = targetQuad.clientHeight;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
+    targetQuad.style.position = 'relative';
+    targetQuad.appendChild(canvas);
+    currentLinesCanvas = canvas;
+    greenLinesActive = true;
+    currentActiveQuad = targetQuad; // تحديث الربع الحالي للخطوط
+    
+    const quadImage = targetQuad.querySelector('img');
+    if (quadImage) {
+        quadImage.style.transform = 'scale(1)';
+        quadImage.style.transformOrigin = 'center center';
+    }
+    
+    drawLinesWithParams(canvas, currentOrientation, currentCount, currentThickness);
+    setupCanvasEvents(canvas);
+    
+    currentLinesOrientation = currentOrientation;
+    currentLinesCount = currentCount;
+    
+    const fovInput = document.getElementById('fovInput');
+    if (fovInput && quadImage) {
+        let fov = parseFloat(fovInput.value) || 25.0;
+        let zoomLevel = fov / 25.0;
+        zoomLevel = Math.min(2.5, Math.max(0.5, zoomLevel));
+        quadImage.style.transform = `scale(${zoomLevel})`;
+        quadImage.style.transformOrigin = 'center center';
+    }
+    
+    roiStatus.textContent = `Lines moved to Quad ${targetQuad.dataset.quad} (${currentOrientation === 'vertical' ? 'Vertical' : 'Horizontal'}). Press Preview to play video.`;
+}
+
+function drawLinesWithParams(canvas, orientation, count, thicknessMM) {
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    ctx.clearRect(0, 0, width, height);
+    ctx.beginPath();
+    ctx.strokeStyle = '#00ff00';
+    
+    let lineWidth = Math.min(6, Math.max(1, thicknessMM / 3));
+    ctx.lineWidth = lineWidth;
+    
+    if (orientation === 'vertical') {
+        const step = width / (count + 1);
+        for (let i = 1; i <= count; i++) {
+            const x = step * i;
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+    } else {
+        const step = height / (count + 1);
+        for (let i = 1; i <= count; i++) {
+            const y = step * i;
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+    }
+}
+
+function updateLinesFromControls() {
+    if (!greenLinesActive || !currentLinesCanvas) return;
+    
+    const spacingInput = document.getElementById('spacingInput');
+    const numImagesInput = document.getElementById('numImagesInput');
+    const thicknessInput = document.getElementById('thicknessInput');
+    const fovInput = document.getElementById('fovInput');
+    
+    let spacing = spacingInput ? parseFloat(spacingInput.value) : 5.0;
+    let thickness = thicknessInput ? parseFloat(thicknessInput.value) : 5.0;
+    let fov = fovInput ? parseFloat(fovInput.value) : 25.0;
+    
+    const maxCount = 25;
+    const minCount = 2;
+    const minSpacing = 1.0;
+    const maxSpacing = 20.0;
+    
+    let normalizedSpacing = Math.min(maxSpacing, Math.max(minSpacing, spacing));
+    let newCount = Math.round(maxCount * (minSpacing / normalizedSpacing));
+    newCount = Math.min(maxCount, Math.max(minCount, newCount));
+    
+    if (numImagesInput && parseInt(numImagesInput.value) !== newCount) {
+        numImagesInput.value = newCount;
+    }
+    
+    currentLinesCount = newCount;
+    
+    const quadImage = currentLinesCanvas.parentNode.querySelector('img');
+    if (quadImage) {
+        let zoomLevel = fov / 25.0;
+        zoomLevel = Math.min(2.5, Math.max(0.5, zoomLevel));
+        quadImage.style.transform = `scale(${zoomLevel})`;
+        quadImage.style.transformOrigin = 'center center';
+    }
+    
+    drawLinesWithParams(currentLinesCanvas, currentLinesOrientation, currentLinesCount, thickness);
+}
+
+function activateGreenLinesTool() {
+    console.log("Green Lines Tool Activated");
+    
+    let targetQuad = selectedQuad || reformatQuad1;
+    
+    if (!targetQuad) {
+        console.error("No target quad found!");
+        return;
+    }
+    
+    if (currentLinesCanvas && currentLinesCanvas.parentNode) {
+        currentLinesCanvas.parentNode.removeChild(currentLinesCanvas);
+        currentLinesCanvas = null;
+    }
+    
+    const existingOverlay = targetQuad.querySelector('.preview-video-overlay');
+    if (existingOverlay) {
+        existingOverlay.remove();
+    }
+    
+    const canvas = document.createElement('canvas');
+    canvas.className = 'green-lines-canvas';
+    canvas.width = targetQuad.clientWidth;
+    canvas.height = targetQuad.clientHeight;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
+    targetQuad.style.position = 'relative';
+    targetQuad.appendChild(canvas);
+    currentLinesCanvas = canvas;
+    greenLinesActive = true;
+    currentActiveQuad = targetQuad;
+    
+    const quadImage = targetQuad.querySelector('img');
+    if (quadImage) {
+        quadImage.style.transform = 'scale(1)';
+        quadImage.style.transformOrigin = 'center center';
+    }
+    
+    updateLinesFromControls();
+    setupCanvasEvents(canvas);
+    
+    const spacingInput = document.getElementById('spacingInput');
+    const thicknessInput = document.getElementById('thicknessInput');
+    const numImagesInput = document.getElementById('numImagesInput');
+    const fovInput = document.getElementById('fovInput');
+    
+    if (spacingInput) spacingInput.addEventListener('input', updateLinesFromControls);
+    if (thicknessInput) thicknessInput.addEventListener('input', updateLinesFromControls);
+    if (numImagesInput) {
+        numImagesInput.addEventListener('input', function() {
+            if (!greenLinesActive) return;
+            let val = parseInt(this.value);
+            if (!isNaN(val) && val >= 2 && val <= 30) {
+                currentLinesCount = val;
+                let thickness = parseFloat(document.getElementById('thicknessInput')?.value) || 5.0;
+                drawLinesWithParams(currentLinesCanvas, currentLinesOrientation, currentLinesCount, thickness);
+                const spacingInput2 = document.getElementById('spacingInput');
+                if (spacingInput2) {
+                    let newSpacing = 20.0 / val;
+                    newSpacing = Math.min(20, Math.max(1, newSpacing));
+                    spacingInput2.value = newSpacing.toFixed(1);
+                }
+            }
+        });
+    }
+    if (fovInput) fovInput.addEventListener('input', updateLinesFromControls);
+    
+    roiStatus.textContent = `Lines active on Quad ${targetQuad.dataset.quad}. Draw or adjust lines, then click Preview.`;
+}
+
+function setupCanvasEvents(canvas) {
+    canvas.addEventListener('mousedown', (e) => {
+        if (!greenLinesActive) return;
+        isDrawingLines = true;
+        startPoint.x = e.offsetX;
+        startPoint.y = e.offsetY;
+        canvas.style.cursor = 'grabbing';
+        e.preventDefault();
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        if (!greenLinesActive || !isDrawingLines) return;
+        
+        const deltaX = e.offsetX - startPoint.x;
+        const deltaY = e.offsetY - startPoint.y;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+        
+        let newOrientation = currentLinesOrientation;
+        if (absDeltaX > absDeltaY && absDeltaX > 10) {
+            newOrientation = 'vertical';
+        } else if (absDeltaY > absDeltaX && absDeltaY > 10) {
+            newOrientation = 'horizontal';
+        }
+        
+        let newCount = currentLinesCount;
+        if (newOrientation === 'vertical') {
+            const distance = Math.abs(deltaX);
+            newCount = Math.max(2, Math.min(25, Math.floor(distance / 15) + 3));
+        } else {
+            const distance = Math.abs(deltaY);
+            newCount = Math.max(2, Math.min(25, Math.floor(distance / 15) + 3));
+        }
+        
+        if (newOrientation !== currentLinesOrientation || newCount !== currentLinesCount) {
+            currentLinesOrientation = newOrientation;
+            currentLinesCount = newCount;
+            let thickness = parseFloat(document.getElementById('thicknessInput')?.value) || 5.0;
+            drawLinesWithParams(currentLinesCanvas, currentLinesOrientation, currentLinesCount, thickness);
+            
+            const numImagesInput = document.getElementById('numImagesInput');
+            if (numImagesInput && parseInt(numImagesInput.value) !== newCount) {
+                numImagesInput.value = newCount;
+            }
+            
+            const spacingInput = document.getElementById('spacingInput');
+            if (spacingInput) {
+                let newSpacing = 20.0 / newCount;
+                newSpacing = Math.min(20, Math.max(1, newSpacing));
+                spacingInput.value = newSpacing.toFixed(1);
+            }
+            
+            roiStatus.textContent = `Lines: ${currentLinesOrientation === 'vertical' ? 'Vertical' : 'Horizontal'}, Count: ${currentLinesCount}`;
+        }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        isDrawingLines = false;
+        if (canvas) canvas.style.cursor = 'crosshair';
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+        isDrawingLines = false;
+        if (canvas) canvas.style.cursor = 'crosshair';
+    });
+    
+    canvas.style.cursor = 'crosshair';
+    
+    window.addEventListener('resize', () => {
+        if (greenLinesActive && currentLinesCanvas) {
+            const parent = currentLinesCanvas.parentNode;
+            if (parent) {
+                currentLinesCanvas.width = parent.clientWidth;
+                currentLinesCanvas.height = parent.clientHeight;
+                let thickness = parseFloat(document.getElementById('thicknessInput')?.value) || 5.0;
+                drawLinesWithParams(currentLinesCanvas, currentLinesOrientation, currentLinesCount, thickness);
+            }
+        }
+    });
+}
+
+function openReformat() {
+    reformatOverlay.style.display = "flex";
+    const img1 = document.getElementById('reformatImg1');
+    const img2 = document.getElementById('reformatImg2');
+    const img3 = document.getElementById('reformatImg3');
+    const img4 = document.getElementById('reformatImg4');
+    
+    if(img1) img1.style.opacity = "1";
+    if(img2) img2.style.opacity = "1";
+    if(img3) img3.style.opacity = "1";
+    if(img4) img4.style.opacity = "1";
+    
+    allQuads.forEach(quad => {
+        const img = quad.querySelector('img');
+        if(img) img.style.transform = 'scale(1)';
+        const overlay = quad.querySelector('.preview-video-overlay');
+        if(overlay) overlay.remove();
+    });
+    
+    allQuads.forEach(q => q.classList.remove('selected-quad'));
+    selectedQuad = null;
+    currentActiveQuad = null;
+    
+    greenLinesActive = false;
+    if (currentLinesCanvas && currentLinesCanvas.parentNode) {
+        currentLinesCanvas.parentNode.removeChild(currentLinesCanvas);
+        currentLinesCanvas = null;
+    }
+}
+
+function closeReformat() {
+    reformatOverlay.style.display = "none";
+}
+if(reformatBtn) reformatBtn.addEventListener("click", openReformat);
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && reformatOverlay.style.display === 'flex') {
+        closeReformat();
+    }
+});
+
+mainImageFirst.addEventListener("click", function(){
+    if(currentImageFirst === 1){
+        this.src = "c:/Users/dell/OneDrive/Desktop/IIIIIIIIIII.jpg";
+        currentImageFirst = 2;
+    }else{
+        this.src = "c:/Users/dell/OneDrive/Desktop/00000000000000000.jpg";
+        currentImageFirst = 1;
+    }
+});
+
+mainImageSecond.addEventListener("click", function(){
+    if(currentImageSecond === 1){
+        this.src = "c:/Users/dell/OneDrive/Desktop/IIIIIIIIIII.jpg";
+        currentImageSecond = 2;
+    }else{
+        this.src = "c:/Users/dell/OneDrive/Desktop/00000000000000000.jpg";
+        currentImageSecond = 1;
+    }
+});
+
+document.querySelectorAll('.location-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        currentButton = this;
+        currentType = this.dataset.type;
+        currentRow = this.dataset.row;
+        
+        document.getElementById('modalTitle').textContent = currentType === 'start' ? 
+            'Enter the desired Start Location.' : 'Enter the desired End Location.';
+        document.getElementById('modalInput').value = this.dataset.value;
+        document.getElementById('locationModal').style.display = 'flex';
+    });
+});
+
+window.closeModal = function() {
+    document.getElementById('locationModal').style.display = 'none';
+    currentButton = null;
+}
+
+window.saveModalValue = function() {
+    if (!currentButton) { closeModal(); return; }
+    
+    const modalInput = document.getElementById('modalInput');
+    let newValue = modalInput.value.trim();
+    if (newValue === '') newValue = currentType === 'start' ? 'I0.00' : 'S400.00';
+    
+    let prefix = '', numberPart = '';
+    const firstChar = newValue.charAt(0);
+    if (isNaN(firstChar) && firstChar.match(/[a-zA-Z]/)) {
+        prefix = firstChar.toUpperCase();
+        numberPart = newValue.substring(1);
+    } else {
+        prefix = currentType === 'start' ? 'I' : 'S';
+        numberPart = newValue;
+    }
+    
+    const numberMatch = numberPart.match(/(\d+(\.\d+)?)/);
+    let number = numberMatch ? parseFloat(numberMatch[0]) : (currentType === 'start' ? 0.00 : 400.00);
+    if (isNaN(number)) number = currentType === 'start' ? 0.00 : 400.00;
+    if (number < 0) number = 0;
+    if (number > 400) number = 400;
+    
+    const formattedValue = prefix + number.toFixed(2);
+    currentButton.textContent = formattedValue;
+    currentButton.dataset.value = formattedValue;
+    currentButton.classList.add('modified');
+    
+    closeModal();
+}
+
+document.getElementById('locationModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.getElementById('modalInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') saveModalValue();
+});
+
+document.querySelectorAll('.kv-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        e.preventDefault();
+        currentKvButton = this;
+        let currentValue = this.dataset.value || '100';
+        
+        document.querySelectorAll('.kv-option-btn').forEach(btn => {
+            btn.classList.remove('selected');
+            if (btn.dataset.kv === currentValue) btn.classList.add('selected');
+        });
+        
+        document.getElementById('kvModal').style.display = 'flex';
+    });
+});
+
+window.closeKvModal = function() {
+    document.getElementById('kvModal').style.display = 'none';
+    currentKvButton = null;
+}
+
+document.querySelectorAll('.kv-option-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.kv-option-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        if (currentKvButton) {
+            let selectedValue = this.dataset.kv;
+            currentKvButton.textContent = selectedValue;
+            currentKvButton.dataset.value = selectedValue;
+            currentKvButton.classList.add('modified');
+            closeKvModal();
+        }
+    });
+});
+
+document.getElementById('kvModal').addEventListener('click', function(e) {
+    if (e.target === this) closeKvModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (document.getElementById('kvModal').style.display === 'flex' && e.key === 'Escape') {
+        closeKvModal();
+    }
+});
+
+document.querySelectorAll(".param-input").forEach(input=>{
+    let original = input.value;
+    input.addEventListener("input", function(){
+        this.classList.toggle("modified", this.value !== original);
+    });
+});
+
+function playBannerVideo(videoNumber, page) {
+    return new Promise((resolve) => {
+        let mainImage, bannerVideo;
+        
+        if (page === 'first') {
+            mainImage = mainImageFirst;
+            bannerVideo = videoNumber === 1 ? bannerVideo1First : bannerVideo2First;
+        } else {
+            mainImage = mainImageSecond;
+            bannerVideo = videoNumber === 1 ? bannerVideo1Second : bannerVideo2Second;
+        }
+        
+        mainImage.style.display = "none";
+        bannerVideo.classList.add("active");
+        bannerVideo.load();
+        bannerVideo.play();
+        
+        bannerVideo.onended = function() {
+            bannerVideo.classList.remove("active");
+            mainImage.style.display = "block";
+            startScanBtn.classList.add("active");
+            resolve();
+        };
+    });
+}
+
+function showScoutImages() {
+    scanPhase = 'scoutPhaseBoth';
+    rightSide.style.display = "flex";
+    leftSide.style.width = "60%";
+
+    gifVideos.forEach(video => video.style.opacity = "0");
+    scoutImages.forEach(img => img.style.opacity = "0");
+    roiLayers.forEach(layer => layer.style.display = "none");
+    roiBoxes.forEach(box => box.classList.remove("active"));
+    drawingEnabled = false;
+
+    resetTimer();
+    startTimer();
+    startScanSound();
+
+    progress = 0;
+    progressBar.style.width = "0%";
+
+    if(scanInterval) clearInterval(scanInterval);
+
+    scanInterval = setInterval(() => {
+        progress += 2;
+        progressBar.style.width = progress + "%";
+
+        if(progress >= 100) {
+            scoutImages.forEach(img => img.style.opacity = "1");
+            clearInterval(scanInterval);
+            stopScanSound();
+            scoutImagesDisplayed = true;
+            roiStatus.textContent = "Scout images displayed. Press Next Series to continue.";
+        }
+    }, 150);
+}
+
+function hideQuads2_3_4() {
+    const quad2 = document.querySelector("#quadContainer .quad:nth-child(2)");
+    const quad3 = document.querySelector("#quadContainer .quad:nth-child(3)");
+    const quad4 = document.querySelector("#quadContainer .quad:nth-child(4)");
+    
+    if(quad2) quad2.style.display = "none";
+    if(quad3) quad3.style.display = "none";
+    if(quad4) quad4.style.display = "none";
+}
+
+function showAllQuads() {
+    const quad2 = document.querySelector("#quadContainer .quad:nth-child(2)");
+    const quad3 = document.querySelector("#quadContainer .quad:nth-child(3)");
+    const quad4 = document.querySelector("#quadContainer .quad:nth-child(4)");
+    
+    if(quad2) quad2.style.display = "flex";
+    if(quad3) quad3.style.display = "flex";
+    if(quad4) quad4.style.display = "flex";
+}
+
+function showSecondPageAndROI() {
+    pageFirst.style.display = "none";
+    pageSecond.classList.add('visible');
+    currentPage = 'second';
+    
+    scanPhase = 'roiPhase';
+    
+    hideQuads2_3_4();
+    
+    scoutImages.forEach((img, idx) => {
+        if(idx === 0) img.style.opacity = "1";
+        else img.style.opacity = "0";
+    });
+    
+    gifVideos.forEach(video => {
+        video.pause();
+        video.style.opacity = "0";
+    });
+    
+    drawingEnabled = true;
+    if(roiLayer1) roiLayer1.style.display = "block";
+    if(roiLayer2) roiLayer2.style.display = "none";
+    
+    if(roiBox1) {
+        roiBox1.classList.remove("active");
+        roiBox1.style.width = "0";
+        roiBox1.style.height = "0";
+    }
+    if(roiBox2) {
+        roiBox2.classList.remove("active");
+        roiBox2.style.width = "0";
+        roiBox2.style.height = "0";
+    }
+    
+    rightSide.style.display = "flex";
+    leftSide.style.width = "60%";
+    
+    roiStatus.textContent = "✏️ Draw ROI on the image (click and drag), then press Confirm to continue.";
+}
+
+function clearRoiBoxes() {
+    roiLayers.forEach(layer => layer.style.display = "none");
+    roiBoxes.forEach(box => {
+        box.classList.remove("active");
+        box.style.width = "0";
+        box.style.height = "0";
+        box.style.left = "0";
+        box.style.top = "0";
+    });
+    drawingEnabled = false;
+}
+
+function startGifPhase() {
+    scanPhase = 'gifPhase';
+    rightSide.style.display = "flex";
+    leftSide.style.width = "60%";
+    
+    gifVideos.forEach((video, index) => {
+        video.style.opacity = "0";
+        video.pause();
+        video.currentTime = 0;
+    });
+    
+    scoutImages.forEach(img => img.style.opacity = "0");
+    scoutImage1.style.opacity = "1";
+    
+    startScanSound();
+    progress = 0;
+    progressBar.style.width = "0%";
+    
+    if(scanInterval) clearInterval(scanInterval);
+    
+    scanInterval = setInterval(() => {
+        progress += 1;
+        progressBar.style.width = progress + "%";
+        
+        if(progress >= 25 && gifVideos[1].style.opacity !== "1") {
+            gifVideos[1].style.opacity = "1";
+            gifVideos[1].play().catch(e => console.log("Video 2 play failed:", e));
+            gifVideos[3].style.opacity = "1";
+            gifVideos[3].play().catch(e => console.log("Video 4 play failed:", e));
+        }
+        
+        if(progress >= 100) {
+            clearInterval(scanInterval);
+            stopScanSound();
+            roiStatus.textContent = "Image in Quad 1, Videos in Quad 2 and Quad 4 started at 25%.";
+        }
+    }, 200);
+}
+
+function setupRoiDrawing() {
+    let isDrawing = false;
+    let startX, startY;
+    let currentBox = null;
+    let currentLayer = null;
+
+    function startDraw(e, layer, box) {
+        if (!drawingEnabled) return;
+        
+        currentLayer = layer;
+        currentBox = box;
+        isDrawing = true;
+        const rect = layer.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        
+        box.style.left = startX + 'px';
+        box.style.top = startY + 'px';
+        box.style.width = '0';
+        box.style.height = '0';
+    }
+
+    function draw(e) {
+        if (!isDrawing || !drawingEnabled || !currentBox || !currentLayer) return;
+
+        const rect = currentLayer.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        const width = currentX - startX;
+        const height = currentY - startY;
+
+        currentBox.style.left = Math.min(startX, currentX) + 'px';
+        currentBox.style.top = Math.min(startY, currentY) + 'px';
+        currentBox.style.width = Math.abs(width) + 'px';
+        currentBox.style.height = Math.abs(height) + 'px';
+        currentBox.classList.add('active');
+    }
+
+    function stopDraw() { 
+        isDrawing = false;
+        currentBox = null;
+        currentLayer = null;
+    }
+
+    if (roiLayers[0] && roiBoxes[0]) {
+        roiLayers[0].addEventListener('mousedown', (e) => startDraw(e, roiLayers[0], roiBoxes[0]));
+        roiLayers[0].addEventListener('mousemove', draw);
+        roiLayers[0].addEventListener('mouseup', stopDraw);
+        roiLayers[0].addEventListener('mouseleave', stopDraw);
+    }
+    
+    if (roiLayers[1] && roiBoxes[1]) {
+        roiLayers[1].addEventListener('mousedown', (e) => startDraw(e, roiLayers[1], roiBoxes[1]));
+        roiLayers[1].addEventListener('mousemove', draw);
+        roiLayers[1].addEventListener('mouseup', stopDraw);
+        roiLayers[1].addEventListener('mouseleave', stopDraw);
+    }
+}
+setupRoiDrawing();
+
+continueBtn.addEventListener("click", function() {
+    if (!firstContinueClick) {
+        firstContinueClick = true;
+        tableSection.classList.add('hidden');
+        scanPhase = 'banner1Playing';
+        roiStatus.textContent = "Playing first banner video...";
+        resetTimer();
+        startTimer();
+        playBannerVideo(1, 'first').then(() => {
+            scanPhase = 'readyForScoutScan';
+            roiStatus.textContent = "First banner finished. Press Start Scan for scout images.";
+        });
+    } else {
+        if (scanPhase === 'roiPhase') {
+            drawingEnabled = false;
+            clearRoiBoxes();
+            showAllQuads();
+            scoutImages.forEach(img => img.style.opacity = "1");
+            scanPhase = 'banner2Playing';
+            roiStatus.textContent = "Playing second banner video...";
+            playBannerVideo(2, 'second').then(() => {
+                scanPhase = 'readyForGifPhase';
+                roiStatus.textContent = "Second banner finished. Press Start Scan for GIFs.";
+            });
+        }
+    }
+});
+
+startScanBtn.addEventListener("click", function() {
+    if (scanPhase === 'readyForScoutScan') {
+        showScoutImages();
+        startScanBtn.classList.remove("active");
+    } else if (scanPhase === 'readyForGifPhase') {
+        startGifPhase();
+        startScanBtn.classList.remove("active");
+    }
+});
+
+serieSuivBtn.addEventListener("click", function() {
+    if (scanPhase === 'scoutPhaseBoth' && scoutImagesDisplayed) {
+        showSecondPageAndROI();
+    }
+});
+
+finExamenBtn.addEventListener("click", function() {
+    stopTimer();
+    console.log("Fin Examen clicked - timer stopped");
+});
+
+scanPhase = 'initial';
+drawingEnabled = false;
+pageFirst.style.display = "block";
+pageSecond.classList.remove('visible');
+currentPage = 'first';
+roiStatus.textContent = "Press Continue to start the process.";
+
+const reformatTabs = document.querySelectorAll('#reformatOverlay .tab');
+reformatTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        reformatTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+    });
+});
+</script>
+</div> <!-- closing main-layout -->
+
+<!-- ===== COPYRIGHT FOOTER ===== -->
+<footer class="footer">
+    <div>© 2026 ALL RIGHTS RESERVED</div>
+    <div>CT Scan System Interface</div>
+    <div>Developed By <span class="name">Malak Saber</span></div>
+    <div>Unauthorized copying or reproduction is prohibited.</div>
+    <div style="margin-top:8px;">
+        <a href="https://github.com/sabermalak955-cyber" target="_blank">GitHub Profile</a>
+    </div>
+</body>
+</html>
